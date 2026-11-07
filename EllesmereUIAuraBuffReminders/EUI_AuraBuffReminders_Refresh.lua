@@ -1086,7 +1086,11 @@ function EABR.CollectForeverRaidBuffs(missing, playerClass, inInstance)
     local castSpell, castUnit
     local provided, covered, idle, idleFirst = false, false, nil, nil
     local lockdown = InCombatLockdown()
-    if rb and EABR.SectionShows(rb.whereToShow, inInstance) then
+    -- "Out of Combat" unchecked: the pass still runs out of combat (it records
+    -- the held reminder and binds the cast), but shows nothing.
+    local oocHidden = rb and rb.whereToShow and rb.whereToShow.out_of_combat == false
+        and not InCombat()
+    if rb and EABR.SectionShows(rb.whereToShow, inInstance, true) then
         local sw = rb.showWhen
         local othersMissing = not sw or sw.othersMissing ~= false
         local iAmMissing = sw and sw.iAmMissing == true
@@ -1139,7 +1143,7 @@ function EABR.CollectForeverRaidBuffs(missing, playerClass, inInstance)
                             end
                         end
                     end
-                    if isMissing then
+                    if isMissing and not oocHidden then
                         local e = AcquireEntry()
                         e.label = ShortLabel(SpellName(buff.castSpell) or buff.name)
                         e.cat = "raidbuff"; e.data = buff

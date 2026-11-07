@@ -419,10 +419,15 @@ function EABR.CurrentWhereBucket(inInstance)
     return nil
 end
 
--- Per-section gate. "In Combat" is an orthogonal state gate layered on top of
--- the location buckets.
-function EABR.SectionShows(whereToShow, inInstance)
+-- Per-section gate. "In Combat" and "Out of Combat" are orthogonal state gates
+-- layered on top of the location buckets. keepOOC skips the out-of-combat gate
+-- for a caller that must still read state out of combat (the Forever Raid Buffs
+-- collector, see EABR.OutOfCombatHidden).
+function EABR.SectionShows(whereToShow, inInstance, keepOOC)
     if whereToShow and whereToShow.in_combat == false and InCombat() then return false end
+    if not keepOOC and whereToShow and whereToShow.out_of_combat == false and not InCombat() then
+        return false
+    end
     local bucket = EABR.CurrentWhereBucket(inInstance)
     if not bucket then return true end
     if not whereToShow then return true end

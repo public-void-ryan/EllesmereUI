@@ -629,9 +629,10 @@ initFrame:SetScript("OnEvent", function(self)
         { key="delve",             label="Delve" },
         { key="lair",              label="Lair" },
         { key="scenario",          label="Scenario" },
-        -- Orthogonal state gate (not a location): unchecking hides this
-        -- section while in combat.
+        -- Orthogonal state gates (not locations): unchecking hides this
+        -- section while in combat / while out of combat.
         { key="in_combat",         label="In Combat" },
+        { key="out_of_combat",     label="Out of Combat" },
     }
     -- WoW Forever buckets: vanilla dungeons report Normal difficulty and its
     -- raids the legacy 40/20-player ids (mapped in the core file), so Raid
@@ -641,6 +642,7 @@ initFrame:SetScript("OnEvent", function(self)
         { key="dungeon_nonmythic", label="Dungeons" },
         { key="raid_normal_lfr",   label="Raids" },
         { key="in_combat",         label="In Combat" },
+        { key="out_of_combat",     label="Out of Combat" },
     }
     -- The WoW Forever section never shows in combat: no combat gate to offer
     local FOREVER_SECTION_WHERE_ITEMS = {

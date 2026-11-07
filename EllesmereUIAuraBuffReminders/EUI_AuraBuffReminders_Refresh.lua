@@ -1049,11 +1049,40 @@ end
 -- stays bound to the first buff it provides. Under lockdown the binding
 -- cannot change, so only the buff the button casts shows there; another waits
 -- for the end of combat.
+-- Provider reminders that were up on the last readable pass: key -> { have,
+-- total }. Read only while the buff cannot be read in combat.
+EABR._fvHeld = EABR._fvHeld or {}
+
+-- The player's own cast of a family spell clears that buff's held reminder.
+-- True when one was cleared (the caller asks for a refresh).
+function EABR.FvCastSucceeded(spellID)
+    local held = EABR._fvHeld
+    if spellID == nil or isSecret(spellID) or next(held) == nil then return false end
+    local cleared = false
+    for _, buff in ipairs(RAID_BUFFS) do
+        local fam = buff.fam
+        if fam and held[buff.key] then
+            local set = fam._idSet
+            if not set then
+                set = {}
+                for _, id in ipairs(fam.ids) do set[id] = true end
+                fam._idSet = set
+            end
+            if set[spellID] then
+                held[buff.key] = nil
+                cleared = true
+            end
+        end
+    end
+    return cleared
+end
+
 function EABR.CollectForeverRaidBuffs(missing, playerClass, inInstance)
     local rb = db.profile.raidBuffs
     local watch = EABR._fvWatchFams
     if watch then wipe(watch) else watch = {}; EABR._fvWatchFams = watch end
     local roster = false
+    local held = EABR._fvHeld
     local castSpell, castUnit
     local provided, covered, idle, idleFirst = false, false, nil, nil
     local lockdown = InCombatLockdown()
@@ -1073,14 +1102,28 @@ function EABR.CollectForeverRaidBuffs(missing, playerClass, inInstance)
                 if not iCast and iAmMissing and not buff.talent then roster = true end
                 local doReceiver = not iCast and not buff.talent and groupClasses and groupClasses[buff.class]
                     and EABR.PlayerBenefitsFromBuff(buff)
-                if (iCast or doReceiver) and EABR.FvReadable(fam, restricted) then
+                if iCast or doReceiver then
                     local isMissing, have, total, first
-                    if iCast and othersMissing and grouped then
-                        have, total, first = EABR.FvCoverage(fam, buff.benefit, covered)
-                        covered = true
-                        isMissing = total > 0 and have < total
-                    else
-                        isMissing = EABR.FvUnitHas("player", fam) == false
+                    if EABR.FvReadable(fam, restricted) then
+                        if iCast and othersMissing and grouped then
+                            have, total, first = EABR.FvCoverage(fam, buff.benefit, covered)
+                            covered = true
+                            isMissing = total > 0 and have < total
+                        else
+                            isMissing = EABR.FvUnitHas("player", fam) == false
+                        end
+                        -- Remember a provider reminder that is up, for the
+                        -- combat hold below.
+                        if iCast then
+                            held[buff.key] = isMissing and { have = have, total = total } or nil
+                        end
+                    elseif iCast and InCombat() then
+                        -- A rank reads secret in combat, so the buff cannot be
+                        -- read. Keep a reminder that was up when the aura went
+                        -- unreadable; a cast of the buff clears it
+                        -- (EABR.FvCastSucceeded).
+                        local h = held[buff.key]
+                        if h then isMissing, have, total = true, h.have, h.total end
                     end
                     if iCast then
                         if not idle then idle, idleFirst = buff, first end

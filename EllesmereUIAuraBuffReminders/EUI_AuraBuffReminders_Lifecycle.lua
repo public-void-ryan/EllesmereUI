@@ -419,6 +419,10 @@ function EABR:OnEnable()
     if not EABR.FOREVER and (GetPlayerClass() == "HUNTER" or GetPlayerClass() == "EVOKER") then
         mainFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
     end
+    -- WoW Forever: a cast of a raid buff clears its held combat reminder.
+    if EABR.FOREVER then
+        mainFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
+    end
 
     -- WoW Forever's Raid Buffs watch tracks its own range (EABR.FvSyncGroupWatch).
     if EABR.FOREVER then return end
@@ -594,6 +598,10 @@ mainFrame:SetScript("OnEvent", function(_, e, arg1, arg2, arg3)
 
     if e == "UNIT_SPELLCAST_SUCCEEDED" then
         -- arg1 = unit ("player"), arg2 = castGUID, arg3 = spellID
+        if EABR.FOREVER then
+            if EABR.FvCastSucceeded(arg3) then RequestRefresh() end
+            return
+        end
         if arg3 == 257284 then
             SetHuntersMarkNeeded(false)
             RequestRefresh()

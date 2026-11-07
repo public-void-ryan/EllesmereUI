@@ -145,6 +145,8 @@ EQT.GetLineRGB = function() return 1, 1, 1, 1 end
 EQT.GetHeaderRGB = function() return 1, 1, 1 end
 EQT.GetFont = function() return "font" end
 EQT.ShouldHideMasterHeader = function() return headerHidden end
+EQT.FocusColorOn = function() return true end
+EQT.GetFocusRGB = function() return 1, 1, 0 end
 
 -------------------------------------------------------------------------------
 --  1. Which tracker a profile gets: its pick, else ours under the EllesmereUI

@@ -115,8 +115,11 @@ end
 -- A bar's own opacity (0-1): cfg.opacity (percent, default 100), or
 -- cfg.oocOpacity (default 50) while Fade Out of Combat is on and the player is
 -- out of combat. On ns to stay under the Lua 5.1 local ceiling.
-function ns.PAB_BarOpacity(cfg)
+-- With Full Opacity on Mouseover (cfg.mouseoverFull) the bar is 1 while the
+-- cursor is over it (hovered, tracked by ns.PAB_HoverPollOn's poller).
+function ns.PAB_BarOpacity(cfg, hovered)
     if not cfg then return 1 end
+    if hovered and cfg.mouseoverFull then return 1 end
     if cfg.oocFadeEnabled and not InCombatLockdown() then
         return (cfg.oocOpacity or 50) / 100
     end
@@ -130,7 +133,11 @@ local function SetParentShownSafe(key, parent, want, recompute)
     if issecretvalue and issecretvalue(shown) then shown = nil end
     -- Shown at the bar's own opacity (the caller stores its cfg on the parent as
     -- _pabCfg); hidden and suppressed states stay at 0.
-    local alpha = (pabSuppressed or (locked and not want)) and 0 or ns.PAB_BarOpacity(parent._pabCfg)
+    local alpha = (pabSuppressed or (locked and not want)) and 0
+        or ns.PAB_BarOpacity(parent._pabCfg, parent._pabHover)
+    if parent._pabCfg and parent._pabCfg.mouseoverFull and ns.PAB_HoverPollOn then
+        ns.PAB_HoverPollOn()
+    end
     if parent:GetAlpha() ~= alpha then parent:SetAlpha(alpha) end
     if shown == want then return end
     if locked then

@@ -255,6 +255,46 @@ end
 function ns.PAB_RefreshOpacity()
     ApplyVehicleHidden(vehicleHidden)
 end
+
+-- Full Opacity on Mouseover: the bar parents take no mouse input of their own,
+-- so a throttled poll asks each opted-in, shown bar whether the cursor is over
+-- it and re-applies the alpha on a change. Started by SetParentShownSafe when a
+-- bar has the option on; stops itself once none does.
+local hoverFrame = CreateFrame("Frame")
+local hoverAccum = 0
+local function PollHover()
+    local any, changed = false, false
+    local function check(parent)
+        local cfg = parent._pabCfg
+        if cfg and cfg.mouseoverFull then
+            any = true
+            local over = parent:IsShown() and parent:IsMouseOver() or false
+            if (parent._pabHover or false) ~= over then
+                parent._pabHover = over
+                changed = true
+            end
+        elseif parent._pabHover then
+            parent._pabHover = nil
+            changed = true
+        end
+    end
+    if buffsParent then check(buffsParent) end
+    if debuffsParent then check(debuffsParent) end
+    for _, p in pairs(customBuffParents) do check(p) end
+    for _, p in pairs(customDebuffParents) do check(p) end
+    if changed then ns.PAB_RefreshOpacity() end
+    if not any then hoverFrame:Hide() end
+end
+hoverFrame:Hide()
+hoverFrame:SetScript("OnUpdate", function(_, elapsed)
+    hoverAccum = hoverAccum + elapsed
+    if hoverAccum < 0.05 then return end
+    hoverAccum = 0
+    PollHover()
+end)
+function ns.PAB_HoverPollOn()
+    if not hoverFrame:IsShown() then hoverFrame:Show() end
+end
 local function SetVehicleHidden(hidden)
     if vehicleHidden == hidden then return end
     vehicleHidden = hidden

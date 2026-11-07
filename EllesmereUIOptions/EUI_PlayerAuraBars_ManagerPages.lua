@@ -1015,6 +1015,14 @@ local function BuildCoreFields(frame, fontPath, sy, cfg, apply, isBuff)
         }
     ); sy = sy - hh
     do
+        EllesmereUI.BuildInlineCog(opRow._leftRegion, {
+            title = "Opacity",
+            rows = {
+                { type = "toggle", label = "Full Opacity on Mouseover",
+                  get = function() return cfg.mouseoverFull == true end,
+                  set = function(v) cfg.mouseoverFull = v; RefreshOpacity() end },
+            },
+        })
         EllesmereUI.BuildInlineCog(opRow._rightRegion, {
             title = "Fade Out of Combat",
             rows = {

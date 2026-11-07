@@ -993,6 +993,38 @@ local function BuildCoreFields(frame, fontPath, sy, cfg, apply, isBuff)
             setValue = function(v) cfg.sortDirection = v; apply() end
         }
     ); sy = sy - hh
+
+    -- Opacity | Fade Out of Combat (+ Fade Opacity cog). Per bar: the default
+    -- Buffs and Debuffs bars and every custom bar keep their own. Alpha only,
+    -- re-applied live (ns.PAB_RefreshOpacity), no rebuild.
+    local function RefreshOpacity()
+        if ns.PAB_RefreshOpacity then ns.PAB_RefreshOpacity() end
+    end
+    local opRow
+    opRow, hh = W:DualRow(frame, sy,
+        {
+            type = "slider", text = "Opacity", min = 0, max = 100, step = 1, trackWidth = 120,
+            getValue = function() return cfg.opacity or 100 end,
+            setValue = function(v) cfg.opacity = v; RefreshOpacity() end
+        },
+        {
+            type = "toggle", text = "Fade Out of Combat",
+            tooltip = "Dims this bar to the Fade Opacity while you are out of combat. It returns to Opacity in combat.",
+            getValue = function() return cfg.oocFadeEnabled == true end,
+            setValue = function(v) cfg.oocFadeEnabled = v; RefreshOpacity() end
+        }
+    ); sy = sy - hh
+    do
+        EllesmereUI.BuildInlineCog(opRow._rightRegion, {
+            title = "Fade Out of Combat",
+            rows = {
+                { type = "slider", label = "Fade Opacity", min = 0, max = 100, step = 1,
+                  disabled = function() return cfg.oocFadeEnabled ~= true end,
+                  get = function() return cfg.oocOpacity or 50 end,
+                  set = function(v) cfg.oocOpacity = v; RefreshOpacity() end },
+            },
+        })
+    end
     do
         local rgn = sizeRow._leftRegion
         EllesmereUI.BuildInlineCog(rgn, {

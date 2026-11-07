@@ -328,6 +328,7 @@ local function ReloadCustomBuffBarImpl(barId)
     -- bucket's applicability to the current spec AND this spec's per-spec
     -- disable of group bars. Inactive parks exactly like disabled.
     local barActive = ns.PAB_BarActive(bar, barBucket)
+    parent._pabCfg = bar
     SetParentShownSafe("custom-buff-" .. barId, parent, barActive,
         function() ns.PAB_ReloadCustomBuffBar(barId) end)
     if not barActive then return end
@@ -453,6 +454,7 @@ local function ReloadCustomDebuffBarImpl(barId)
     end
     -- Same effective-render verdict as the custom buff reload above.
     local barActive = ns.PAB_BarActive(bar, barBucket)
+    parent._pabCfg = bar
     SetParentShownSafe("custom-debuff-" .. barId, parent, barActive,
         function() ns.PAB_ReloadCustomDebuffBar(barId) end)
     if not barActive then return end

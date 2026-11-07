@@ -250,6 +250,11 @@ local function ApplyVehicleHidden(hidden)
             bar ~= nil and ns.PAB_BarActive(bar, bk), recompute)
     end
 end
+-- Re-applies every bar parent's alpha from its cfg: an Opacity / Fade Out of
+-- Combat edit, and the combat edges (fadeFrame below).
+function ns.PAB_RefreshOpacity()
+    ApplyVehicleHidden(vehicleHidden)
+end
 local function SetVehicleHidden(hidden)
     if vehicleHidden == hidden then return end
     vehicleHidden = hidden
@@ -401,6 +406,11 @@ initFrame:SetScript("OnEvent", function(self, event)
     ReapplyAllAfterCinematic()
 end)
 
+-- Combat edges re-apply the bars' Fade Out of Combat. Its own frame: initFrame's
+-- handler treats every event it does not name as a cinematic edge.
+local fadeFrame = CreateFrame("Frame")
+fadeFrame:SetScript("OnEvent", function() ns.PAB_RefreshOpacity() end)
+
 -- Called by CreateBars once it has passed its own enabled check -- the only
 -- point where "PAB is actually running" is known to be true. Idempotent:
 -- CreateBars can run more than once per session (login build, live enable).
@@ -427,6 +437,8 @@ function ns.PAB_ArmRecovery()
     -- Editing-spec buckets: bucket bars follow the player's spec (handler
     -- early-returns for profiles without buckets).
     initFrame:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
+    fadeFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+    fadeFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 end
 
 I.broken = false

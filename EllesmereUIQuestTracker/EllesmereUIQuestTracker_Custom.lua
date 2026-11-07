@@ -258,7 +258,9 @@ local OBJ_RGB = OBJECTIVE_TRACKER_COLOR and OBJECTIVE_TRACKER_COLOR.Normal or { 
 local DONE_RGB = OBJECTIVE_TRACKER_COLOR and OBJECTIVE_TRACKER_COLOR.Complete or { r = 0.6, g = 0.6, b = 0.6 }
 
 local function TitleRGB(questID, complete)
-    if questID == C_SuperTrack.GetSuperTrackedQuestID() then return EQT.GetFocusRGB() end
+    if EQT.FocusColorOn() and questID == C_SuperTrack.GetSuperTrackedQuestID() then
+        return EQT.GetFocusRGB()
+    end
     if complete then return EQT.GetCompletedRGB() end
     -- Title Difficulty Colors: the game's own option (EQT.TitleDifficultyOn)
     if EQT.TitleDifficultyOn() then

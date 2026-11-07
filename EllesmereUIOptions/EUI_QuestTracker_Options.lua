@@ -589,6 +589,18 @@ initFrame:SetScript("OnEvent", function(self)
         end
         y = y - h
 
+        -- Color Focused Quest: off keeps the focused quest's title the normal color.
+        do
+            local _, rowH = W:DualRow(parent, y,
+                { type="toggle", text="Color Focused Quest",
+                  tooltip="Colors the focused quest's title with the Focused Color. Off keeps it the same color as any other quest.",
+                  getValue=function() return Cfg("focusColorEnabled") ~= false end,
+                  setValue=function(v) Set("focusColorEnabled", v); RefreshAll() end },
+                { type="spacer" })
+            h = rowH
+        end
+        y = y - h
+
         -- Line Color | Color Objectives by Progress (+ color stops cog). The
         -- objective colors are WoW Forever only; retail keeps the spacer.
         do

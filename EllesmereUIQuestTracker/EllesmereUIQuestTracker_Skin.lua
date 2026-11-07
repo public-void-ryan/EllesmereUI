@@ -55,6 +55,12 @@ local function GetFocusRGB()
     local c = EQT.DB()
     return c.focusR or 0.871, c.focusG or 0.251, c.focusB or 1.0
 end
+-- Whether the focused (super-tracked) quest's title gets the Focused Color.
+-- Off: it keeps the color any other quest would have. On EQT for the custom
+-- tracker and to stay under the Lua 5.1 local ceiling.
+function EQT.FocusColorOn()
+    return EQT.DB().focusColorEnabled ~= false
+end
 local SUB_TRACKERS = {
     "ScenarioObjectiveTracker",
     "UIWidgetObjectiveTracker",
@@ -821,7 +827,7 @@ local function ApplyFocusHighlight(block)
     local fs = GetBlockTitleFS(block)
     if not fs then return end
     local qID     = (type(block.id) == "number") and block.id or nil
-    local isFocus = qID and (qID == GetSuperTrackedIDCached())
+    local isFocus = qID and (qID == GetSuperTrackedIDCached()) and EQT.FocusColorOn()
     local isDone  = qID and C_QuestLog and C_QuestLog.IsComplete
                     and C_QuestLog.IsComplete(qID)
     -- With Title Difficulty Colors off, a code Blizzard wrote while it was on

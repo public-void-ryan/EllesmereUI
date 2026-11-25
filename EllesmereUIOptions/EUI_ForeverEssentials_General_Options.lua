@@ -792,7 +792,7 @@ _G._EUI_BuildForeverGeneralPage = function(pageName, parent, yOffset)
 
         local FE = EllesmereUI._ModuleNS["EllesmereUIForeverEssentials"]
         local function noPriceAddon()
-            return not (FE.PriceSourceLoaded("AUCTIONATOR") or FE.PriceSourceLoaded("BBB"))
+            return not (FE.PriceSourceLoaded("AUCTIONATOR") or FE.PriceSourceLoaded("BBB") or FE.PriceSourceLoaded("AHPRICE"))
         end
         -- Only Show When Bag Space Is Low (its threshold in the cog) | Use Auction Prices (its addon in the cog)
         local lowRow

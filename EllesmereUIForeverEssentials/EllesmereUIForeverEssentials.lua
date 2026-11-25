@@ -175,33 +175,49 @@ function ns.Broker()
     return bbb and type(bbb.ItemUnitValue) == "function" and bbb or nil
 end
 
-ns.PRICE_SOURCES = { AUCTIONATOR = "Auctionator", BBB = "BootyBayBroker" }
-ns.PRICE_SOURCE_ORDER = { "AUCTIONATOR", "BBB" }
+-- AHPrice's API, while that addon is loaded. Its True Value is the market
+-- price in copper.
+function ns.AHPrice()
+    local api = AHPriceAPI
+    return type(api) == "table" and type(api.GetTrueValue) == "function" and api or nil
+end
+
+ns.PRICE_SOURCES = { AUCTIONATOR = "Auctionator", BBB = "BootyBayBroker", AHPRICE = "AHPrice" }
+ns.PRICE_SOURCE_ORDER = { "AUCTIONATOR", "BBB", "AHPRICE" }
 
 function ns.PriceSourceLoaded(source)
     if source == "BBB" then return ns.Broker() ~= nil end
+    if source == "AHPRICE" then return ns.AHPrice() ~= nil end
     return ns.AuctionAPI() ~= nil
 end
 
 -- The price addon in use: the chosen one while it is loaded, else whichever
--- is loaded (Auctionator first).
+-- is loaded (Auctionator first, then BootyBayBroker, then AHPrice).
 function ns.PriceSource(choice)
+    if choice == "AHPRICE" and ns.AHPrice() then return "AHPRICE" end
     if (choice == "BBB" or not ns.AuctionAPI()) and ns.Broker() then return "BBB" end
+    if not ns.AuctionAPI() and ns.AHPrice() then return "AHPRICE" end
     return "AUCTIONATOR"
 end
 
 -- What the price addon values one of the item at, when it has a price:
--- Auctionator's last seen listing, or BootyBayBroker's unit value. The same
--- choice as ns.PriceSource, with each addon looked up once.
+-- Auctionator's last seen listing, BootyBayBroker's unit value, or AHPrice's
+-- True Value. The same choice as ns.PriceSource, with each addon looked up once.
 function ns.AuctionPrice(link, choice)
-    local api = ns.AuctionAPI()
-    local bbb = (choice == "BBB" or not api) and ns.Broker() or nil
+    local source = ns.PriceSource(choice)
     local ok, price
-    if bbb then
+    if source == "AHPRICE" then
+        local ahp = ns.AHPrice()
+        if not ahp then return end
+        ok, price = pcall(ahp.GetTrueValue, link)
+    elseif source == "BBB" then
+        local bbb = ns.Broker()
         local itemID = C_Item.GetItemInfoInstant(link)
-        if not itemID then return end
+        if not bbb or not itemID then return end
         ok, price = pcall(bbb.ItemUnitValue, bbb, itemID)
-    elseif api then
+    else
+        local api = ns.AuctionAPI()
+        if not api then return end
         ok, price = pcall(api.GetAuctionPriceByItemLink, "EllesmereUI", link)
     end
     if ok and type(price) == "number" and price > 0 then return price end

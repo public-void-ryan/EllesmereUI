@@ -44,7 +44,7 @@ _G._EUI_BuildLootFeedPage = function(pageName, parent, yOffset)
     -- only with the price addon's API at hand.
     local FE = EllesmereUI._ModuleNS["EllesmereUIForeverEssentials"]
     local function auctionSource()
-        return FE.PriceSourceLoaded("AUCTIONATOR") or FE.PriceSourceLoaded("BBB")
+        return FE.PriceSourceLoaded("AUCTIONATOR") or FE.PriceSourceLoaded("BBB") or FE.PriceSourceLoaded("AHPRICE")
     end
     local function pricesUnused()
         return not (LF.Get("tracker") or (LF.Get("items") and LF.Get("showPrice")))
